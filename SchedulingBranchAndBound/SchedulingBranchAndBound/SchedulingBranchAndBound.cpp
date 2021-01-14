@@ -1,6 +1,3 @@
-// SchedulingBranchAndBound.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <fstream>
 #include <vector> 
@@ -74,18 +71,34 @@ bool Scheduling(int task) {//szereguje tylko pierwsz�, druga jest dostosowywana 
 
 }
 
-int main()
-{
-    std::cout << "Hello World!\n";
+#include "SchedulingBranchAndBound.h"
+// Kto wpadł na pomysł tak dlugiej nazwy pliku ?????? :/
+// Tutaj to kij, ale header do tego ma 2 km
+
+
+// TODO określić strukturę podawanych danych i danych, które chcemy otrzymać
+
+// TODO drugi algorytm do porównania Johnson??? / brute
+
+void rewrite_table(Task *table1, Task *table2, int nr_of_items) {
+    for (int i = 0; i < nr_of_items; i++) {
+        table2[i] = table1[i];
+    }
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+int main() {
+    int n = 0; // Number of tasks
+    Task *first_task; // Pointer to original first task
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+    // TODO Wczytać dane i sprawdzić ich poprawność
+
+    Task *task_current[n]; // Table for pointers for exact tasks of currently calculated solution
+    Task *task_best[n]; // Table for pointers for exact tasks of best calculated solution
+
+    // Odpalić algorytm góra dół
+
+    // Jakiś wykresik albo insze gówno
+    // Zapis wyniku do pliku
+
+    return 0;
+}
