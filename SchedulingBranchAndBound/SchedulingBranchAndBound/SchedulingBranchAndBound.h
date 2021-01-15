@@ -3,6 +3,8 @@
 
 // TODO Przewalić to na jakieś ładne klasy jak na cpp przystało, a nie jak barbarzyńca w c
 
+#define DATA_FORMAT 't'
+//#define DATA_FORMAT 'b'
 
 typedef struct Task {
     unsigned int m1_time;
