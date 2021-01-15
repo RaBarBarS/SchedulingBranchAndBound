@@ -1,0 +1,16 @@
+3 3 # dl przerwy na maszynie 1/2
+4 4 # max dl bez przerwy na maszynie 1/2
+
+# czasy kolejnych zadan na poszcegolnych maszynach
+1 1
+3 1
+2 1
+0 3
+1 1
+0 3
+2 3
+2 2
+2 3
+0 0
+
+# uzywam hasha bo to jeden znak, a nie dwa jak "//" i może będę obsługiwał je jako dozwolone komentarze

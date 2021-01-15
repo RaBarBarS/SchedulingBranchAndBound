@@ -12,7 +12,7 @@ using namespace std;
 
 // TODO drugi algorytm do porównania Johnson??? / brute
 
-void rewriteTable(Task* table1, Task* table2, int nr_of_items) {
+void rewriteTable(Task *table1, Task *table2, int nr_of_items) {
     for (int i = 0; i < nr_of_items; i++) {
         table2[i] = table1[i];
     }
@@ -21,6 +21,9 @@ void rewriteTable(Task* table1, Task* table2, int nr_of_items) {
 void readFile(ifstream &filename, Task *firstTask, FlowShop *flowShop) {
     string word; // MoÅ¼na to do intÃ³w prypisywaÄ‡, ale sprawdzam, czy ktoÅ› nie postanowiÅ‚ jakiegoÅ› syfu podaÄ‡
     unsigned int i = 0;
+    int value;
+
+    // TODO przerobi? to na pobieranie linii i obs?ug? jej
 
     while (filename >> word) {
         // Searching for comment lines starting with '#'
@@ -30,17 +33,23 @@ void readFile(ifstream &filename, Task *firstTask, FlowShop *flowShop) {
             continue;
         }
 
-        // TODO cast stringa do inta
+        value = stoi(word);
 
         switch (i) {
             case 0:
+                flowShop->repair_time[0] = value;
+                break;
             case 1:
+                flowShop->repair_time[1] = value;
+                break;
             case 2:
+                flowShop->max_working_time[0] = value;
+                break;
             case 3:
+                flowShop->max_working_time[1] = value;
             default:
                 break;
         }
-
         i++;
     }
 }
@@ -51,12 +60,12 @@ int main() {
     FlowShop flow_shop; // Structure with all needed information about flow shop
 
     // TODO Wczyta? dane i sprawdzi? ich poprawno??
-    ifstream input_file("thefile.txt");
+    ifstream input_file("data/ex_1.txt");
     readFile(input_file, first_task, &flow_shop);
     input_file.close();
 
-    Task* task_current[n]; // Table for pointers for exact tasks of currently calculated solution
-    Task* task_best[n]; // Table for pointers for exact tasks of best calculated solution
+    Task *task_current[n]; // Table for pointers for exact tasks of currently calculated solution
+    Task *task_best[n]; // Table for pointers for exact tasks of best calculated solution
 
     // Odpaliæ algorytm góra dó?
 

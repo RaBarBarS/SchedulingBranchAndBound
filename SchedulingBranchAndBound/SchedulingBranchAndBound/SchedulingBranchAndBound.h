@@ -14,7 +14,7 @@ typedef struct Task {
 typedef struct FlowShop {
     Task *first_task;
     unsigned int repair_time[2];
-    unsigned int no_[2];
+    unsigned int max_working_time[2];
 } FlowShop;
 
 
