@@ -1,33 +1,64 @@
-// SchedulingBranchAndBound.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <fstream>
 
 #include "SchedulingBranchAndBound.h"
-// Kto wpad³ na pomys³ tak dlugiej nazwy pliku ?????? :/
+// Kto wpad³ na pomys³ tak dlugiej nazwy pliku ?????? :(
 // Tutaj to kij, ale header do tego ma 2 km
+
+using namespace std;
 
 
 // TODO okreœliæ strukturê podawanych danych i danych, które chcemy otrzymaæ
 
 // TODO drugi algorytm do porównania Johnson??? / brute
 
-void rewrite_table(Task* table1, Task* table2, int nr_of_items) {
+void rewriteTable(Task* table1, Task* table2, int nr_of_items) {
     for (int i = 0; i < nr_of_items; i++) {
         table2[i] = table1[i];
     }
 }
 
+void readFile(ifstream &filename, Task *firstTask, FlowShop *flowShop) {
+    string word; // MoÅ¼na to do intÃ³w prypisywaÄ‡, ale sprawdzam, czy ktoÅ› nie postanowiÅ‚ jakiegoÅ› syfu podaÄ‡
+    unsigned int i = 0;
+
+    while (filename >> word) {
+        // Searching for comment lines starting with '#'
+        if (word[0] == '#') {
+            getline(filename, word);
+//            filename.ignore(1,'\n');
+            continue;
+        }
+
+        // TODO cast stringa do inta
+
+        switch (i) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            default:
+                break;
+        }
+
+        i++;
+    }
+}
+
 int main() {
     int n = 0; // Number of tasks
-    Task* first_task; // Pointer to original first task
+    Task *first_task = nullptr; // Pointer to original first task
+    FlowShop flow_shop; // Structure with all needed information about flow shop
 
-    // TODO Wczytaæ dane i sprawdziæ ich poprawnoœæ
+    // TODO Wczyta? dane i sprawdzi? ich poprawno??
+    ifstream input_file("thefile.txt");
+    readFile(input_file, first_task, &flow_shop);
+    input_file.close();
 
     Task* task_current[n]; // Table for pointers for exact tasks of currently calculated solution
     Task* task_best[n]; // Table for pointers for exact tasks of best calculated solution
 
-    // Odpaliæ algorytm góra dó³
+    // Odpaliæ algorytm góra dó?
 
     // Jakiœ wykresik albo insze gówno
     // Zapis wyniku do pliku
