@@ -56,7 +56,7 @@ void readFile(ifstream &filename, FlowShop *flow_shop) {
 // TODO dopisa? w?asny format
 #endif
 
-void printSolution2File(ofstream &filename,vector<vector<Action>> actions, unsigned int time) {
+void printSolution2File(ofstream &filename, vector<vector<Action>> actions, unsigned int time) {
     filename << "Cmax: " << time << endl;
     for (unsigned int i = 0; i < actions.size(); i++) {
         filename << "M" << i << ": ";
@@ -113,6 +113,8 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
             action.duration_time = flow_shop->repair_time[i];
             action.end_time = action.start_time + action.duration_time;
             actual_solution->actions[i].push_back(action);
+
+            actual_solution->last_repair_end[i] = action.end_time;
         }
 
         action.action_type = t_task;
@@ -177,14 +179,10 @@ int main(int argc, char *argv[]) {
         addTaskMaking(&flow_shop, &first_solution, i);
     }
 
+    // TODO Odpaliæ algorytm optymalizacji
+
     ofstream output_file(path_to_output);
-    printSolution2File(output_file,first_solution.actions, first_solution.solution_time);
+    printSolution2File(output_file, first_solution.actions, first_solution.solution_time);
     output_file.close();
-
-    // Odpaliæ algorytm góra dó?
-
-    // Jakiœ wykresik albo insze gówno
-    // Zapis wyniku do pliku
-
     return 0;
 }
