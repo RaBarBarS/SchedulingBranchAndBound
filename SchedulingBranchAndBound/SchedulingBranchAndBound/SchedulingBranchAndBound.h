@@ -1,23 +1,44 @@
-#ifndef SCHEDULINGBRANCHANDBOUND_SCHEDULINGBRANCHANDBOUND_H
-#define SCHEDULINGBRANCHANDBOUND_SCHEDULINGBRANCHANDBOUND_H
+#ifndef SCHEDULINGBRANCHANDBOUND_H
+#define SCHEDULINGBRANCHANDBOUND_H
 
-// TODO Przewalić to na jakieś ładne klasy jak na cpp przystało, a nie jak barbarzyńca w c
+#include <vector>
 
-#define DATA_FORMAT 't'
-//#define DATA_FORMAT 'b'
 
-typedef struct Task {
-    unsigned int m1_time;
-    unsigned int m2_time;
-    int time_diff;
-    Task *next_task;
-} Task;
+//#define DATA_FORMAT 't'
+#define DATA_FORMAT 'b'
 
-typedef struct FlowShop {
-    Task *first_task;
-    unsigned int repair_time[2];
-    unsigned int max_working_time[2];
+typedef enum {
+    t_idle = 0,
+    t_task = 1,
+    t_maintenance = 2,
+} ActionType;
+
+typedef struct {
+    ActionType action_type;
+    unsigned int action_nr;
+    unsigned int start_time;
+    unsigned int duration_time;
+    unsigned int end_time;
+} Action;
+
+typedef struct {
+    unsigned int nr_of_tasks;
+    unsigned int nr_of_shops;
+
+    std::vector<std::vector<unsigned int>> tasks;
+    std::vector<unsigned int> repair_time;
+    std::vector<unsigned int> max_work_time;
+
+    unsigned int best_solution_time;
+    std::vector<std::vector<Action>> actions;
 } FlowShop;
 
+typedef struct {
+    std::vector<std::vector<Action>> actions;
+    std::vector<unsigned int> last_repair_end;
+    std::vector<unsigned int> tasks_made;
+    unsigned int solution_time = 0;
+} ActualSolution;
 
-#endif //SCHEDULINGBRANCHANDBOUND_SCHEDULINGBRANCHANDBOUND_H
+
+#endif //SCHEDULINGBRANCHANDBOUND_H
