@@ -56,28 +56,28 @@ void readFile(ifstream &filename, FlowShop *flow_shop) {
 // TODO dopisa? w?asny format
 #endif
 
-void printSolution(vector<vector<Action>> actions, unsigned int time) {
-    cout << "Cmax: " << time << endl;
+void printSolution2File(ofstream &filename,vector<vector<Action>> actions, unsigned int time) {
+    filename << "Cmax: " << time << endl;
     for (unsigned int i = 0; i < actions.size(); i++) {
-        cout << "M" << i << ": ";
+        filename << "M" << i << ": ";
         for (unsigned int j = 0; j < actions[i].size(); j++) {
             switch (actions[i][j].action_type) {
                 case t_task:
-                    cout << actions[i][j].action_nr << "/";
+                    filename << actions[i][j].action_nr << "/";
                     break;
                 case t_idle:
-                    cout << "i/";
+                    filename << "i/";
                     break;
                 case t_maintenance:
-                    cout << "m/";
+                    filename << "m/";
                     break;
                 default:
-                    cout << "e/";
+                    filename << "e/";
                     break;
             }
-            cout << actions[i][j].duration_time << ", ";
+            filename << actions[i][j].duration_time << ", ";
         }
-        cout << endl;
+        filename << endl;
     }
 }
 
@@ -177,7 +177,10 @@ int main(int argc, char *argv[]) {
         addTaskMaking(&flow_shop, &first_solution, i);
     }
 
-    printSolution(first_solution.actions, first_solution.solution_time);
+    ofstream output_file(path_to_output);
+    printSolution2File(output_file,first_solution.actions, first_solution.solution_time);
+    output_file.close();
+
     // Odpaliæ algorytm góra dó?
 
     // Jakiœ wykresik albo insze gówno
