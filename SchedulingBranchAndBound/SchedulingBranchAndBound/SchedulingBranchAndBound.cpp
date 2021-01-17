@@ -9,10 +9,7 @@
 
 using namespace std;
 
-
-// TODO okreœliæ strukturê podawanych danych i danych, które chcemy otrzymaæ
-
-// TODO drugi algorytm do porównania Johnson??? / brute
+// TODO drugi algorytm do porównania Johnson???
 
 //void rewriteTable(old_Task *table1, old_Task *table2, int nr_of_items) {
 //    for (int i = 0; i < nr_of_items; i++) {
@@ -159,15 +156,24 @@ findOptimalSolution(FlowShop *flow_shop, ActualSolution *actual_solution, Calcul
         if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(), i) ==
             actual_solution->tasks_made.end()) {
 
-//            if (solver == c_bottom || solver == c_bottom_and_upper) {
-//                unsigned int hipotecal_solution = actual_solution->solution_time;
-//                for (unsigned int j = i; j < flow_shop->nr_of_tasks; j++) {
-//                    if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(),
-//                             j) == actual_solution->tasks_made.end()) {
-//
-//                    }
-//                }
-//            }
+            if (solver == c_bottom || solver == c_bottom_and_upper) {
+                unsigned int potential_solution = actual_solution->solution_time;
+                for (unsigned int j = i; j < flow_shop->nr_of_tasks; j++) {
+                    if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(),
+                             j) == actual_solution->tasks_made.end()) {
+                        potential_solution += flow_shop->tasks[flow_shop->nr_of_shops - 1][j];
+                    }
+                }
+                unsigned int solution_diff = potential_solution - actual_solution->solution_time;
+                unsigned int potential_breaks =
+                        solution_diff / flow_shop->max_work_time[flow_shop->nr_of_shops - 1];
+                potential_solution +=
+                        potential_breaks * flow_shop->repair_time[flow_shop->nr_of_shops - 1];
+
+                if (potential_solution > flow_shop->best_solution_time) {
+                    return 0;
+                }
+            }
 
             // Element not found
             ActualSolution new_solution = *actual_solution;
@@ -210,7 +216,7 @@ ActualSolution getClearSolution(unsigned int nr_of_shops) {
 int main(int argc, char *argv[]) {
     string path_to_input = "../data/input.txt";
     string path_to_output = "../data/output.txt";
-    CalculationType solver = c_upper;
+    CalculationType solver = c_bottom_and_upper;
 
     // Read of passed arguments
     for (int i = 1; i < argc; i++) {
