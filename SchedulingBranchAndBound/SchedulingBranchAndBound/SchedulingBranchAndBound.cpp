@@ -83,6 +83,8 @@ void printSolution2File(ofstream &filename, vector<vector<Action>> actions, unsi
 int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned int task_nr) {
     Action action;
 
+    // TODO wywalic te powtarzające się fragmenty do funkcji
+
     for (unsigned int i = 0; i < flow_shop->nr_of_shops; i++) {
         unsigned int task_time = flow_shop->tasks[i][task_nr]; // Czas trwania zadania
         unsigned int end_time = actual_solution->actions[i].back().end_time; // Czas w którym kończy pracę poprzednie zadanie
@@ -99,15 +101,48 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
         if (actual_solution->last_repair_end[i] + flow_shop->max_work_time[i] <
             starting_time + task_time) {
 
-            // Jeśli przerwa jest większa niż wynosi naprawa to będzie idle
-            if (starting_time - end_time > flow_shop->repair_time[i]) {
-                action.action_type = t_idle;
-                action.action_nr = 0;
-                action.start_time = actual_solution->actions[i].back().end_time;
-                action.end_time = starting_time - flow_shop->repair_time[i];
-                action.duration_time = action.end_time - action.start_time;
-                actual_solution->actions[i].push_back(action);
+            // Jeśli przerwa jest większa niż wynosi naprawa to będzie idle albo i więcej idlów
+            while (starting_time - actual_solution->actions[i].back().end_time >
+                   flow_shop->repair_time[i]) {
+                // Znajdź kiedy najpóźniej zacząć maintenance
+                unsigned int last_maintenance_moment =
+                        actual_solution->last_repair_end[i] + flow_shop->max_work_time[i];
+
+                // Sprawdź czy najpóźniej zaczęta naprawa nałoży się na zadanie
+                if (last_maintenance_moment + flow_shop->repair_time[i] > starting_time) {
+                    // Jeśli tak to zacznij naprawę najpóźniej jak idzie
+                    action.action_type = t_idle;
+                    action.action_nr = 0;
+                    action.start_time = actual_solution->actions[i].back().end_time;
+                    action.end_time = starting_time - flow_shop->repair_time[i];
+                    action.duration_time = action.end_time - action.start_time;
+                    actual_solution->actions[i].push_back(action);
+                } else {
+                    // Jeśli nie to zrób naprawę najwcześniej jak idzie i sprawdź czy to wystarczy
+                    action.action_type = t_idle;
+                    action.action_nr = 0;
+                    action.start_time = actual_solution->actions[i].back().end_time;
+                    action.end_time = last_maintenance_moment;
+                    action.duration_time = action.end_time - action.start_time;
+                    actual_solution->actions[i].push_back(action);
+
+                    // Sprawdź czy zrobimy to zadanie czy braknie czasu
+                    if (last_maintenance_moment+flow_shop->repair_time[i] >
+                        starting_time + task_time){
+                        break;
+                    }
+
+                    action.action_type = t_maintenance;
+                    action.action_nr = 0;
+                    action.start_time = actual_solution->actions[i].back().end_time;
+                    action.duration_time = flow_shop->repair_time[i];
+                    action.end_time = action.start_time + action.duration_time;
+                    actual_solution->actions[i].push_back(action);
+
+                    actual_solution->last_repair_end[i] = action.end_time;
+                }
             }
+
 
             action.action_type = t_maintenance;
             action.action_nr = 0;
@@ -117,6 +152,15 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
             actual_solution->actions[i].push_back(action);
 
             actual_solution->last_repair_end[i] = action.end_time;
+        }
+            // Albo nie musimy maintenance ale musimy czekac
+        else if (starting_time > end_time) {
+            action.action_type = t_idle;
+            action.action_nr = 0;
+            action.start_time = actual_solution->actions[i].back().end_time;
+            action.end_time = starting_time;
+            action.duration_time = action.end_time - action.start_time;
+            actual_solution->actions[i].push_back(action);
         }
 
         action.action_type = t_task;
