@@ -135,7 +135,8 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
     return 0;
 }
 
-unsigned int bruteCheckAll(FlowShop *flow_shop, ActualSolution *actual_solution) {
+unsigned int
+findOptimalSolution(FlowShop *flow_shop, ActualSolution *actual_solution, CalculationType solver) {
     // Check if we have checked last element
     if (actual_solution->tasks_made.size() == flow_shop->nr_of_tasks) {
         // Check if we found better solution
@@ -146,13 +147,32 @@ unsigned int bruteCheckAll(FlowShop *flow_shop, ActualSolution *actual_solution)
         return 0;
     }
 
+    if (solver == c_upper || solver == c_bottom_and_upper) {
+        if (actual_solution->solution_time > flow_shop->best_solution_time) {
+            return 0;
+        }
+    }
+
+    // If it was not last element keep on trying
     for (unsigned int i = 0; i < flow_shop->nr_of_tasks; i++) {
+        // Check if we already usd that element
         if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(), i) ==
             actual_solution->tasks_made.end()) {
+
+//            if (solver == c_bottom || solver == c_bottom_and_upper) {
+//                unsigned int hipotecal_solution = actual_solution->solution_time;
+//                for (unsigned int j = i; j < flow_shop->nr_of_tasks; j++) {
+//                    if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(),
+//                             j) == actual_solution->tasks_made.end()) {
+//
+//                    }
+//                }
+//            }
+
             // Element not found
             ActualSolution new_solution = *actual_solution;
             addTaskMaking(flow_shop, &new_solution, i);
-            bruteCheckAll(flow_shop, &new_solution);
+            findOptimalSolution(flow_shop, &new_solution, solver);
         }
     }
     return 0;
@@ -190,6 +210,7 @@ ActualSolution getClearSolution(unsigned int nr_of_shops) {
 int main(int argc, char *argv[]) {
     string path_to_input = "../data/input.txt";
     string path_to_output = "../data/output.txt";
+    CalculationType solver = c_upper;
 
     // Read of passed arguments
     for (int i = 1; i < argc; i++) {
@@ -229,7 +250,7 @@ int main(int argc, char *argv[]) {
 
     ActualSolution clear_solution = getClearSolution(flow_shop.nr_of_shops);
     auto start_time = chrono::high_resolution_clock::now();
-    bruteCheckAll(&flow_shop, &clear_solution);
+    findOptimalSolution(&flow_shop, &clear_solution, solver);
     auto end_time = chrono::high_resolution_clock::now();
 
     ofstream output_file(path_to_output);

@@ -13,6 +13,14 @@ typedef enum {
     t_maintenance = 2,
 } ActionType;
 
+typedef enum{
+    // TODO Ta dziwna numeracja ma swoją logikę, ale potrzebuję więcej czasu żeby ją dopracować
+    c_brute=0,
+    c_upper=2,
+    c_bottom=4,
+    c_bottom_and_upper=6,
+}CalculationType;
+
 typedef struct {
     ActionType action_type;
     unsigned int action_nr;
