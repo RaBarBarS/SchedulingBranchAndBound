@@ -37,7 +37,7 @@ typedef struct {
     std::vector<std::vector<Action>> actions;
     std::vector<unsigned int> last_repair_end;
     std::vector<unsigned int> tasks_made;
-    unsigned int solution_time = 0;
+    unsigned int solution_time;
 } ActualSolution;
 
 

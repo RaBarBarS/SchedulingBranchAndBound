@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <algorithm>
 
 #include "SchedulingBranchAndBound.h"
 // Kto wpad³ na pomys³ tak dlugiej nazwy pliku ?????? :(
@@ -90,7 +92,10 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
 
         unsigned int starting_time = end_time; // Czas w którym potencjalnie możemy zacząć zadanie uwzględniając wcześniejsze maszyny
         if (i > 0) {
-            starting_time = actual_solution->actions[i - 1].back().end_time;
+            // Sprawdz czy to zadanie nie konczy się na maszynie i-1 wszesciej niz poprzednie zadanie na tej maszynie
+            if (actual_solution->actions[i - 1].back().end_time > starting_time) {
+                starting_time = actual_solution->actions[i - 1].back().end_time;
+            }
         }
 
         // Czy potrzebny jest maintenance
@@ -130,8 +135,59 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+unsigned int bruteCheckAll(FlowShop *flow_shop, ActualSolution *actual_solution) {
+    // Check if we have checked last element
+    if (actual_solution->tasks_made.size() == flow_shop->nr_of_tasks) {
+        // Check if we found better solution
+        if (actual_solution->solution_time < flow_shop->best_solution_time) {
+            flow_shop->best_solution_time = actual_solution->solution_time;
+            flow_shop->actions = actual_solution->actions;
+        }
+        return 0;
+    }
 
+    for (unsigned int i = 0; i < flow_shop->nr_of_tasks; i++) {
+        if (find(actual_solution->tasks_made.begin(), actual_solution->tasks_made.end(), i) ==
+            actual_solution->tasks_made.end()) {
+            // Element not found
+            ActualSolution new_solution = *actual_solution;
+            addTaskMaking(flow_shop, &new_solution, i);
+            bruteCheckAll(flow_shop, &new_solution);
+        }
+    }
+    return 0;
+}
+
+// To w sumie jest niepotrzebne
+unsigned int estimateWorstSolution(FlowShop *flow_shop) {
+    unsigned int solution_time = 0;
+    for (unsigned int i = 0; i < flow_shop->nr_of_shops; i++) {
+        for (unsigned int j = 0; j < flow_shop->nr_of_tasks; j++) {
+            solution_time += flow_shop->tasks[i][j];
+            solution_time += flow_shop->repair_time[i];
+        }
+    }
+    return solution_time;
+}
+
+ActualSolution getClearSolution(unsigned int nr_of_shops) {
+    ActualSolution solution;
+    for (unsigned int i = 0; i < nr_of_shops; i++) {
+        solution.actions.emplace_back(vector<Action>());
+        Action action;
+        action.action_type = t_idle;
+        action.action_nr = 0;
+        action.start_time = 0;
+        action.duration_time = 0;
+        action.end_time = 0;
+        solution.actions[i].push_back(action);
+        solution.last_repair_end.push_back(0);
+    }
+    solution.solution_time = 0;
+    return solution;
+}
+
+int main(int argc, char *argv[]) {
     string path_to_input = "../data/input.txt";
     string path_to_output = "../data/output.txt";
 
@@ -162,27 +218,25 @@ int main(int argc, char *argv[]) {
     input_file.close();
 
     // Count initial time of making tasks
-    ActualSolution first_solution;
-    for (unsigned int i = 0; i < flow_shop.nr_of_shops; i++) {
-        first_solution.actions.emplace_back(vector<Action>());
-        Action action;
-        action.action_type = t_idle;
-        action.action_nr = 0;
-        action.start_time = 0;
-        action.duration_time = 0;
-        action.end_time = 0;
-        first_solution.actions[i].push_back(action);
-        first_solution.last_repair_end.push_back(0);
-    }
-
+    // Policz pierwsze rozwiązanie z brzegu
+    ActualSolution first_solution = getClearSolution(flow_shop.nr_of_shops);
     for (unsigned int i = 0; i < flow_shop.nr_of_tasks; i++) {
         addTaskMaking(&flow_shop, &first_solution, i);
     }
+    flow_shop.best_solution_time = first_solution.solution_time;
+    flow_shop.actions = first_solution.actions;
 
-    // TODO Odpaliæ algorytm optymalizacji
+
+    ActualSolution clear_solution = getClearSolution(flow_shop.nr_of_shops);
+    auto start_time = chrono::high_resolution_clock::now();
+    bruteCheckAll(&flow_shop, &clear_solution);
+    auto end_time = chrono::high_resolution_clock::now();
 
     ofstream output_file(path_to_output);
-    printSolution2File(output_file, first_solution.actions, first_solution.solution_time);
+    printSolution2File(output_file, flow_shop.actions, flow_shop.best_solution_time);
+    output_file << "Time: "
+                << chrono::duration_cast<chrono::microseconds>(end_time - start_time).count()
+                << " µs" << endl;
     output_file.close();
     return 0;
 }
