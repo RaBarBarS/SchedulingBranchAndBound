@@ -84,13 +84,18 @@ void printSolution2File(ofstream &filename, vector<vector<Action>> actions, unsi
 int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned int task_nr) {
     Action action;
 
+    // TODO wywalic te powtarzające się fragmenty do funkcji
+
     for (unsigned int i = 0; i < flow_shop->nr_of_shops; i++) {
         unsigned int task_time = flow_shop->tasks[i][task_nr]; // Czas trwania zadania
-        unsigned int end_time = actual_solution->actions[i].back().end_time; // Czas w którym kończy pracę poprzednie zadanie
+        unsigned int end_time = actual_solution->actions[i].back().end_time; // Czas w którym
+        // kończy pracę poprzednie zadanie
 
-        unsigned int starting_time = end_time; // Czas w którym potencjalnie możemy zacząć zadanie uwzględniając wcześniejsze maszyny
+        unsigned int starting_time = end_time; // Czas w którym potencjalnie możemy zacząć zadanie
+        // uwzględniając wcześniejsze maszyny
         if (i > 0) {
-            // Sprawdz czy to zadanie nie konczy się na maszynie i-1 wszesciej niz poprzednie zadanie na tej maszynie
+            // Sprawdz czy to zadanie nie konczy się na maszynie i-1 wszesciej niz poprzednie
+            // zadanie na tej maszynie
             if (actual_solution->actions[i - 1].back().end_time > starting_time) {
                 starting_time = actual_solution->actions[i - 1].back().end_time;
             }
@@ -100,24 +105,132 @@ int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned
         if (actual_solution->last_repair_end[i] + flow_shop->max_work_time[i] <
             starting_time + task_time) {
 
-            // Jeśli przerwa jest większa niż wynosi naprawa to będzie idle
-            if (starting_time - end_time > flow_shop->repair_time[i]) {
-                action.action_type = t_idle;
+            // Jeśli przerwa jest większa niż wynosi naprawa to będzie idle albo i więcej idlów
+            if (starting_time - actual_solution->actions[i].back().end_time >
+                flow_shop->repair_time[i]) {
+
+                unsigned int time_hole =
+                        starting_time + task_time - actual_solution->last_repair_end[i];
+
+                // Czy wystarczy 1 maitenance
+                if ((time_hole - flow_shop->max_work_time[i] - 1) /
+                    (flow_shop->max_work_time[i] + flow_shop->repair_time[i]) < 1) {
+                    // Tak wystarczy, zacznij go najpóźniej jak idzie
+
+                    unsigned int potential_main_end =
+                            actual_solution->last_repair_end[i] + flow_shop->max_work_time[i] +
+                            flow_shop->repair_time[i];
+
+                    // Jeśliby main opóźnił zrobienie zadania (lub jest mu równy)
+                    if (potential_main_end > starting_time) {
+                        potential_main_end = starting_time;
+                    }
+                    action.action_type = t_idle;
+                    action.action_nr = 0;
+                    action.start_time = actual_solution->actions[i].back().end_time;
+                    action.end_time = potential_main_end - flow_shop->repair_time[i];
+                    action.duration_time = action.end_time - action.start_time;
+                    actual_solution->actions[i].push_back(action);
+
+                    action.action_type = t_maintenance;
+                    action.action_nr = 0;
+                    action.start_time = actual_solution->actions[i].back().end_time;
+                    action.duration_time = flow_shop->repair_time[i];
+                    action.end_time = potential_main_end;
+                    actual_solution->actions[i].push_back(action);
+
+                    actual_solution->last_repair_end[i] = action.end_time;
+
+                    if (potential_main_end < starting_time) {
+                        action.action_type = t_idle;
+                        action.action_nr = 0;
+                        action.start_time = potential_main_end;
+                        action.end_time = starting_time;
+                        action.duration_time = action.end_time - action.start_time;
+                        actual_solution->actions[i].push_back(action);
+                    }
+                } else {
+                    // Trzeba wiele maintenance
+
+
+                    // Sprawdz czy mamy na to miejsce
+                    if (starting_time - actual_solution->actions[i].back().end_time <=
+                        2 * flow_shop->repair_time[i]) {
+                        // Nie mamy, trzeba rozszerzyć dziurę
+                        action.action_type = t_maintenance;
+                        action.action_nr = 0;
+                        action.start_time = actual_solution->actions[i].back().end_time;
+                        action.duration_time = flow_shop->repair_time[i];
+                        action.end_time = action.start_time + action.duration_time;
+                        actual_solution->actions[i].push_back(action);
+
+                        action.start_time = actual_solution->actions[i].back().end_time;
+                        action.duration_time = flow_shop->repair_time[i];
+                        action.end_time = action.start_time + action.duration_time;
+                        actual_solution->actions[i].push_back(action);
+
+                        actual_solution->last_repair_end[i] = action.end_time;
+                    } else {
+                        // TODO tutaj się może wywalić jeśli czas między naprawami będzie
+                        //  mniejszy niż czas naprawy
+                        // Mamy w ciul miejsca i trzeba je zapełnić
+                        // Jak najwcześniej maitenance
+                        action.action_type = t_maintenance;
+                        action.action_nr = 0;
+                        action.start_time = actual_solution->actions[i].back().end_time;
+                        action.duration_time = flow_shop->repair_time[i];
+                        action.end_time = action.start_time + action.duration_time;
+                        actual_solution->actions[i].push_back(action);
+
+                        // Policz ile zostało czasu w dziurze
+                        unsigned int nie_mam_pomyslu_na_zmienna =
+                                starting_time - actual_solution->actions[i].back().end_time;
+                        unsigned int czas_idla =
+                                nie_mam_pomyslu_na_zmienna % flow_shop->repair_time[i];
+
+                        // Jak idzie to dowal idla
+                        if (czas_idla > 0) {
+                            action.action_type = t_idle;
+                            action.action_nr = 0;
+                            action.start_time = actual_solution->actions[i].back().end_time;
+                            action.duration_time = czas_idla;
+                            action.end_time = action.start_time + action.duration_time;
+                            actual_solution->actions[i].push_back(action);
+                        }
+
+                        // I zapchaj resztę mainem,
+                        // nikt nie powiedział że nie można naprawiać 24/7 xd
+                        while (actual_solution->last_repair_end[i] != starting_time) {
+                            action.action_type = t_maintenance;
+                            action.action_nr = 0;
+                            action.start_time = actual_solution->actions[i].back().end_time;
+                            action.duration_time = flow_shop->repair_time[i];
+                            action.end_time = action.start_time + action.duration_time;
+                            actual_solution->actions[i].push_back(action);
+
+                            actual_solution->last_repair_end[i] = action.end_time;
+                        }
+                    }
+                }
+            } else {
+                action.action_type = t_maintenance;
                 action.action_nr = 0;
                 action.start_time = actual_solution->actions[i].back().end_time;
-                action.end_time = starting_time - flow_shop->repair_time[i];
-                action.duration_time = action.end_time - action.start_time;
+                action.duration_time = flow_shop->repair_time[i];
+                action.end_time = action.start_time + action.duration_time;
                 actual_solution->actions[i].push_back(action);
-            }
 
-            action.action_type = t_maintenance;
+                actual_solution->last_repair_end[i] = action.end_time;
+            }
+        }
+            // Albo nie musimy maintenance ale musimy czekac
+        else if (starting_time > end_time) {
+            action.action_type = t_idle;
             action.action_nr = 0;
             action.start_time = actual_solution->actions[i].back().end_time;
-            action.duration_time = flow_shop->repair_time[i];
-            action.end_time = action.start_time + action.duration_time;
+            action.end_time = starting_time;
+            action.duration_time = action.end_time - action.start_time;
             actual_solution->actions[i].push_back(action);
-
-            actual_solution->last_repair_end[i] = action.end_time;
         }
 
         action.action_type = t_task;
