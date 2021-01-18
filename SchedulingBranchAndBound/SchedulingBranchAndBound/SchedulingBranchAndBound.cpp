@@ -2,6 +2,7 @@
 #include <fstream>
 #include <chrono>
 #include <algorithm>
+#include <string>
 
 #include "SchedulingBranchAndBound.h"
 // Kto wpad³ na pomys³ tak dlugiej nazwy pliku ?????? :(
