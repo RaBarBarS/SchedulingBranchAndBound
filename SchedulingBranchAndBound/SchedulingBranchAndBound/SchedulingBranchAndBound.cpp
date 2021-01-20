@@ -5,18 +5,12 @@
 #include <string>
 
 #include "SchedulingBranchAndBound.h"
-// Kto wpad³ na pomys³ tak dlugiej nazwy pliku ?????? :(
-// Tutaj to kij, ale header do tego ma 2 km
 
 using namespace std;
 
 // TODO drugi algorytm do porównania Johnson???
 
-//void rewriteTable(old_Task *table1, old_Task *table2, int nr_of_items) {
-//    for (int i = 0; i < nr_of_items; i++) {
-//        table2[i] = table1[i];
-//    }
-//}
+// TODO wywalić niepotrzebne funkcje, a potrzebne do innego pliku i poukładac to jakoś ładnie
 
 #if DATA_FORMAT == 'b' // tylko dla dwóch maszyn
 
@@ -83,7 +77,6 @@ void printSolution2File(ofstream &filename, vector<vector<Action>> actions, unsi
 
 int addTaskMaking(FlowShop *flow_shop, ActualSolution *actual_solution, unsigned int task_nr) {
     Action action;
-
     // TODO wywalic te powtarzające się fragmenty do funkcji
 
     for (unsigned int i = 0; i < flow_shop->nr_of_shops; i++) {
@@ -330,7 +323,7 @@ ActualSolution getClearSolution(unsigned int nr_of_shops) {
 int main(int argc, char *argv[]) {
     string path_to_input = "../data/input.txt";
     string path_to_output = "../data/output.txt";
-    CalculationType solver = c_bottom_and_upper;
+    CalculationType solver = c_brute;
 
     // Read of passed arguments
     for (int i = 1; i < argc; i++) {
